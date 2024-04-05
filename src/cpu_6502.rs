@@ -63,24 +63,35 @@ impl Cpu {
         let cur_op = self.memory[self.register_pc as usize];
         let cur_op = Op::try_from(cur_op);
         if let Ok(cur_op) = cur_op {
+            let mode = cur_op.mode;
             match cur_op.name.as_ref() {
-                "ADC" => self.op_adc(cur_op.mode),
-                "AND" => self.op_and(cur_op.mode),
-                "ASL" => self.op_asl(cur_op.mode),
-                "BCC" => self.op_bcc(cur_op.mode),
-                "BCS" => self.op_bcs(cur_op.mode),
-                "BEQ" => self.op_beq(cur_op.mode),
-                "BNE" => self.op_bne(cur_op.mode),
-                "BMI" => self.op_bmi(cur_op.mode),
-                "BPL" => self.op_bpl(cur_op.mode),
-                "BVC" => self.op_bvc(cur_op.mode),
-                "BVS" => self.op_bvs(cur_op.mode),
-                "BIT" => self.op_bit(cur_op.mode),
+                "ADC" => self.op_adc(mode),
+                "AND" => self.op_and(mode),
+                "EOR" => self.op_eor(mode),
+                "ASL" => self.op_asl(mode),
+                "BCC" => self.op_bcc(mode),
+                "BCS" => self.op_bcs(mode),
+                "BEQ" => self.op_beq(mode),
+                "BNE" => self.op_bne(mode),
+                "BMI" => self.op_bmi(mode),
+                "BPL" => self.op_bpl(mode),
+                "BVC" => self.op_bvc(mode),
+                "BVS" => self.op_bvs(mode),
+                "BIT" => self.op_bit(mode),
                 "CLC" => self.op_clc(),
                 "CLD" => self.op_cld(),
                 "CLI" => self.op_cli(),
                 "CLV" => self.op_clv(),
-                "LDA" => self.op_lda(cur_op.mode),
+                "CMP" => self.op_cmp(mode),
+                "CPX" => self.op_cpx(mode),
+                "CPY" => self.op_cpy(mode),
+                "DEC" => self.op_dec(mode),
+                "DEX" => self.op_dex(),
+                "DEY" => self.op_dey(),
+                "INC" => self.op_inc(mode),
+                "INX" => self.op_inx(),
+                "INY" => self.op_iny(),
+                "LDA" => self.op_lda(mode),
                 "TAX" => self.op_tax(),
                 "BRK" => self.op_brk(),
                 _ => {}
@@ -108,6 +119,13 @@ impl Cpu {
         if let Some(m) = self.mode_to_data(mode) {
             let m = self.memory_read_u8(m);
             self.register_a &= m as u8;
+            self.register_a_write_u8(self.register_a);
+        }
+    }
+    fn op_eor(&mut self, mode: MODE) {
+        if let Some(m) = self.mode_to_data(mode) {
+            let m = self.memory_read_u8(m);
+            self.register_a ^= m as u8;
             self.register_a_write_u8(self.register_a);
         }
     }
@@ -249,6 +267,156 @@ impl Cpu {
     }
     fn op_clv(&mut self) {
         self.register_p_clear_flag(Flag::OverFLow);
+    }
+    fn op_cmp(&mut self, mode: MODE) {
+        if let Some(m) = self.mode_to_data(mode) {
+            let m = self.memory[m as usize];
+            if self.register_a >= m {
+                self.register_p_set_flag(Flag::Carry);
+            } else {
+                self.register_p_clear_flag(Flag::Carry);
+            }
+            if self.register_a == m {
+                self.register_p_set_flag(Flag::Zero);
+            } else {
+                self.register_p_clear_flag(Flag::Zero);
+            }
+            if self.register_a.wrapping_sub(m) & 0b_1000_0000 != 0 {
+                self.register_p_set_flag(Flag::Negative);
+            } else {
+                self.register_p_clear_flag(Flag::Negative);
+            }
+        }
+    }
+    fn op_cpx(&mut self, mode: MODE) {
+        if let Some(m) = self.mode_to_data(mode) {
+            let m = self.memory[m as usize];
+            if self.register_x >= m {
+                self.register_p_set_flag(Flag::Carry);
+            } else {
+                self.register_p_clear_flag(Flag::Carry);
+            }
+            if self.register_x == m {
+                self.register_p_set_flag(Flag::Zero);
+            } else {
+                self.register_p_clear_flag(Flag::Zero);
+            }
+            if self.register_x.wrapping_sub(m) & 0b_1000_0000 != 0 {
+                self.register_p_set_flag(Flag::Negative);
+            } else {
+                self.register_p_clear_flag(Flag::Negative);
+            }
+        }
+    }
+    fn op_cpy(&mut self, mode: MODE) {
+        if let Some(m) = self.mode_to_data(mode) {
+            let m = self.memory[m as usize];
+            if self.register_y >= m {
+                self.register_p_set_flag(Flag::Carry);
+            } else {
+                self.register_p_clear_flag(Flag::Carry);
+            }
+            if self.register_y == m {
+                self.register_p_set_flag(Flag::Zero);
+            } else {
+                self.register_p_clear_flag(Flag::Zero);
+            }
+            if self.register_y.wrapping_sub(m) & 0b_1000_0000 != 0 {
+                self.register_p_set_flag(Flag::Negative);
+            } else {
+                self.register_p_clear_flag(Flag::Negative);
+            }
+        }
+    }
+    fn op_dec(&mut self, mode: MODE) {
+        if let Some(m) = self.mode_to_data(mode) {
+            let m = self.memory[m as usize];
+            let m = m.wrapping_sub(1);
+            if m == 0 {
+                self.register_p_set_flag(Flag::Zero);
+            } else {
+                self.register_p_clear_flag(Flag::Zero);
+            }
+            if (m & 0b_1000_0000) != 0 {
+                self.register_p_set_flag(Flag::Negative);
+            } else {
+                self.register_p_clear_flag(Flag::Negative);
+            }
+            self.memory[m as usize] = m;
+        }
+    }
+    fn op_dex(&mut self) {
+        let m = self.register_x.wrapping_sub(1);
+        if m == 0 {
+            self.register_p_set_flag(Flag::Zero);
+        } else {
+            self.register_p_clear_flag(Flag::Zero);
+        }
+        if (m & 0b_1000_0000) != 0 {
+            self.register_p_set_flag(Flag::Negative);
+        } else {
+            self.register_p_clear_flag(Flag::Negative);
+        }
+        self.register_x = m;
+    }
+    fn op_dey(&mut self) {
+        let m = self.register_y.wrapping_sub(1);
+        if m == 0 {
+            self.register_p_set_flag(Flag::Zero);
+        } else {
+            self.register_p_clear_flag(Flag::Zero);
+        }
+        if (m & 0b_1000_0000) != 0 {
+            self.register_p_set_flag(Flag::Negative);
+        } else {
+            self.register_p_clear_flag(Flag::Negative);
+        }
+        self.register_y = m;
+    }
+    fn op_inc(&mut self, mode: MODE) {
+        if let Some(m) = self.mode_to_data(mode) {
+            let m = self.memory[m as usize];
+            let m = m.wrapping_add(1);
+            if m == 0 {
+                self.register_p_set_flag(Flag::Zero);
+            } else {
+                self.register_p_clear_flag(Flag::Zero);
+            }
+            if (m & 0b_1000_0000) != 0 {
+                self.register_p_set_flag(Flag::Negative);
+            } else {
+                self.register_p_clear_flag(Flag::Negative);
+            }
+            self.memory[m as usize] = m;
+        }
+    }
+    fn op_inx(&mut self) {
+        let m = self.register_x.wrapping_add(1);
+        if m == 0 {
+            self.register_p_set_flag(Flag::Zero);
+        } else {
+            self.register_p_clear_flag(Flag::Zero);
+        }
+        if (m & 0b_1000_0000) != 0 {
+            self.register_p_set_flag(Flag::Negative);
+        } else {
+            self.register_p_clear_flag(Flag::Negative);
+        }
+        self.register_x = m;
+    }
+    fn op_iny(&mut self) {
+        let m = self.register_y.wrapping_add(1);
+        if m == 0 {
+            self.register_p_set_flag(Flag::Zero);
+        } else {
+            self.register_p_clear_flag(Flag::Zero);
+        }
+        if (m & 0b_1000_0000) != 0 {
+            self.register_p_set_flag(Flag::Negative);
+        } else {
+            self.register_p_clear_flag(Flag::Negative);
+        }
+        self.register_y = m;
     }
     fn op_lda(&mut self, mode: MODE) {
         if let Some(m) = self.mode_to_data(mode) {
@@ -541,6 +709,15 @@ mod test {
         assert_eq!(cpu.register_a, 0x00);
     }
     #[test]
+    fn test_eor() {
+        let mut cpu = Cpu::new();
+        cpu.interrupt_rst();
+        cpu.register_pc = 0x8000;
+        cpu.register_a = 0x00;
+        cpu.run_without_init(&[0x49, 0xFF, 0x00]);
+        assert_eq!(cpu.register_a, 0xFF);
+    }
+    #[test]
     fn test_asl() {
         let mut cpu = Cpu::new();
         cpu.interrupt_rst();
@@ -655,5 +832,79 @@ mod test {
     #[test]
     fn test_clc_cld_cli_clv() {
         //we have done it in other test module (right?)
+    }
+    #[test]
+    fn test_cmp() {
+        let mut cpu = Cpu::new();
+        cpu.interrupt_rst();
+        cpu.register_pc = 0x8000;
+        cpu.register_a = 0xFF;
+        cpu.register_p_set_flag(Flag::Zero);
+        cpu.run_without_init(&[0xC9, 0xFE, 0x00]);
+        assert_eq!(cpu.register_p_flag_is_set(Flag::Carry), true);
+        cpu.interrupt_rst();
+        cpu.register_pc = 0x8000;
+        cpu.register_a = 0xFE;
+        cpu.memory[0x00] = 0xFF;
+        cpu.register_p_set_flag(Flag::Zero);
+        cpu.run_without_init(&[0xC5, 0x00, 0x00]);
+        assert_eq!(cpu.register_p_flag_is_set(Flag::Carry), false);
+        cpu.interrupt_rst();
+        cpu.register_pc = 0x8000;
+        cpu.register_a = 0xFF;
+        cpu.memory[0x00] = 0xFE;
+        cpu.register_p_set_flag(Flag::Zero);
+        cpu.run_without_init(&[0xC5, 0x00, 0x00]);
+        assert_eq!(cpu.register_p_flag_is_set(Flag::Carry), true);
+    }
+    #[test]
+    fn test_cpx() {
+        //skip(similar to CMP)
+    }
+    #[test]
+    fn test_cpy() {
+        //skip(similar to CMP)
+    }
+    #[test]
+    fn test_dec() {
+        let mut cpu = Cpu::new();
+        cpu.interrupt_rst();
+        cpu.register_pc = 0x8000;
+        cpu.memory[0x00] = 0x01;
+        cpu.run_without_init(&[0xC6, 0x00, 0x00]);
+        assert_eq!(cpu.memory[0x00], 0x00);
+        assert_eq!(cpu.register_p_flag_is_set(Flag::Zero), true);
+    }
+    #[test]
+    fn test_dex() {
+        let mut cpu = Cpu::new();
+        cpu.interrupt_rst();
+        cpu.register_pc = 0x8000;
+        cpu.register_x = 0x01;
+        cpu.run_without_init(&[0xCA, 0x00, 0x00]);
+        assert_eq!(cpu.register_x, 0x00);
+        assert_eq!(cpu.register_p_flag_is_set(Flag::Zero), true);
+    }
+    #[test]
+    fn test_dey() {
+        let mut cpu = Cpu::new();
+        cpu.interrupt_rst();
+        cpu.register_pc = 0x8000;
+        cpu.register_y = 0x01;
+        cpu.run_without_init(&[0x88, 0x00, 0x00]);
+        assert_eq!(cpu.register_y, 0x00);
+        assert_eq!(cpu.register_p_flag_is_set(Flag::Zero), true);
+    }
+    #[test]
+    fn test_inc() {
+        //skip
+    }
+    #[test]
+    fn test_inx() {
+        //skip
+    }
+    #[test]
+    fn test_iny() {
+        //skip
     }
 }

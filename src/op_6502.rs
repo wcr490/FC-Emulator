@@ -50,6 +50,15 @@ pub fn initialize_op() {
             Op::new("AND".to_string(), 0x39, 4, 3, MODE::AbsoluteY), //cycle + 1 if page crossed
             Op::new("AND".to_string(), 0x21, 6, 2, MODE::IndirectX),
             Op::new("AND".to_string(), 0x31, 5, 2, MODE::IndirectY), //cycle + 1 if page crossed
+            /* EOR  */
+            Op::new("EOR".to_string(), 0x49, 2, 2, MODE::Immediate),
+            Op::new("EOR".to_string(), 0x45, 3, 2, MODE::ZeroPage),
+            Op::new("EOR".to_string(), 0x55, 4, 2, MODE::ZeroPageX),
+            Op::new("EOR".to_string(), 0x4D, 4, 3, MODE::Absolute),
+            Op::new("EOR".to_string(), 0x5D, 4, 3, MODE::AbsoluteX), //cycle + 1 if page crossed
+            Op::new("EOR".to_string(), 0x59, 4, 3, MODE::AbsoluteY), //cycle + 1 if page crossed
+            Op::new("EOR".to_string(), 0x41, 6, 2, MODE::IndirectX),
+            Op::new("EOR".to_string(), 0x51, 5, 2, MODE::IndirectY), //cycle + 1 if page crossed
             /* ASL  */
             Op::new("ASL".to_string(), 0x0A, 2, 1, MODE::Accumulator),
             Op::new("ASL".to_string(), 0x06, 5, 2, MODE::ZeroPage),
@@ -80,6 +89,41 @@ pub fn initialize_op() {
             Op::new("CLD".to_string(), 0xD8, 2, 1, MODE::Implied),
             Op::new("CLI".to_string(), 0x58, 2, 1, MODE::Implied),
             Op::new("CLV".to_string(), 0xB8, 2, 1, MODE::Implied),
+            /* CMP  */
+            Op::new("CMP".to_string(), 0xC9, 2, 2, MODE::Immediate),
+            Op::new("CMP".to_string(), 0xC5, 3, 2, MODE::ZeroPage),
+            Op::new("CMP".to_string(), 0xD5, 4, 2, MODE::ZeroPageX),
+            Op::new("CMP".to_string(), 0xCD, 4, 3, MODE::Absolute),
+            Op::new("CMP".to_string(), 0xDD, 4, 3, MODE::AbsoluteX), //cycle + 1 if page crossed
+            Op::new("CMP".to_string(), 0xD9, 4, 3, MODE::AbsoluteY), //cycle + 1 if page crossed
+            Op::new("CMP".to_string(), 0xC1, 6, 2, MODE::IndirectX),
+            Op::new("CMP".to_string(), 0xD1, 5, 2, MODE::IndirectY), //cycle + 1 if page crossed
+            /* CPX  */
+            Op::new("CPX".to_string(), 0xE0, 2, 2, MODE::Immediate),
+            Op::new("CPX".to_string(), 0xE4, 3, 2, MODE::ZeroPage),
+            Op::new("CPX".to_string(), 0xEC, 4, 3, MODE::Absolute),
+            /* CPY  */
+            Op::new("CPY".to_string(), 0xC0, 2, 2, MODE::Immediate),
+            Op::new("CPY".to_string(), 0xC4, 3, 2, MODE::ZeroPage),
+            Op::new("CPY".to_string(), 0xCC, 4, 3, MODE::Absolute),
+            /* DEC  */
+            Op::new("DEC".to_string(), 0xC6, 5, 2, MODE::ZeroPage),
+            Op::new("DEC".to_string(), 0xD6, 6, 2, MODE::ZeroPageX),
+            Op::new("DEC".to_string(), 0xCE, 6, 3, MODE::Absolute),
+            Op::new("DEC".to_string(), 0xDE, 7, 3, MODE::AbsoluteX),
+            /* DEX  */
+            Op::new("DEX".to_string(), 0xCA, 2, 1, MODE::Implied),
+            /* DEY  */
+            Op::new("DEY".to_string(), 0x88, 2, 1, MODE::Implied),
+            /* INC  */
+            Op::new("INC".to_string(), 0xE6, 5, 2, MODE::ZeroPage),
+            Op::new("INC".to_string(), 0xF6, 6, 2, MODE::ZeroPageX),
+            Op::new("INC".to_string(), 0xEE, 6, 3, MODE::Absolute),
+            Op::new("INC".to_string(), 0xFE, 7, 3, MODE::AbsoluteX),
+            /* INX  */
+            Op::new("INX".to_string(), 0xE8, 2, 1, MODE::Implied),
+            /* INY  */
+            Op::new("INY".to_string(), 0xC8, 2, 1, MODE::Implied),
             /* LDA  */
             Op::new("LDA".to_string(), 0xA9, 2, 2, MODE::Immediate),
             Op::new("LDA".to_string(), 0xA5, 3, 2, MODE::ZeroPage),
